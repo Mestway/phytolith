@@ -13,9 +13,7 @@ from pprint import pprint
 
 import json
 
-params = json.load(open('params.json'))
-
-def load(file_name):
+def load(file_name, width, height):
 
     f = h5py.File(file_name, "r")
 
@@ -43,8 +41,8 @@ def load(file_name):
 
                 X = np.pad(X, pad_width=(w_pad, h_pad), mode='constant', constant_values=0)
 
-                if params["width"] < max_width or params["height"] < max_height:
-                    X = imresize(X, (params["width"], params["height"]))
+                if width < max_width or height < max_height:
+                    X = imresize(X, (width, height))
 
                 segs = name.split('/')
                 for seg in segs:

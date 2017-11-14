@@ -2,5 +2,7 @@
 	"width": 512,
     "height": 512,
 
-    "num_classes": 2
+    "batch_size": 1,
+    "learning_rate": 0.1,
+    "training_epochs": 5
 }
