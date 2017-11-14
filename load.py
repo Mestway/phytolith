@@ -8,7 +8,6 @@ import os
 import numpy as np
 
 from scipy.misc import imresize
-
 from pprint import pprint
 
 import json
@@ -45,14 +44,12 @@ def load(file_name, width, height):
                     X = imresize(X, (width, height))
 
                 segs = name.split('/')
-                for seg in segs:
-                    if "Subfamily" in seg:
-                        family = seg.split('-')[0].strip()
-                    if "Tribe" in seg:
-                        tribe = seg.split('-')[0].strip()
+
+                family = segs[6].split('-')[0].strip()
+                snd = segs[7].strip()
 
                 Xs.append(X)
-                ys.append(family)
+                ys.append(family + " - " + snd)
         except:
             pass
 

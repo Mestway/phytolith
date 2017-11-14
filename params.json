@@ -1,8 +1,10 @@
 {
-	"width": 512,
-    "height": 512,
+	"width": 128,
+    "height": 128,
 
-    "batch_size": 1,
+    "batch_size": 20,
     "learning_rate": 0.1,
-    "training_epochs": 5
+    "training_epochs": 5,
+
+    "dropout": 0.5
 }
