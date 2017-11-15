@@ -49,7 +49,7 @@ def load(file_name, width, height):
                 snd = segs[7].strip()
 
                 Xs.append(X)
-                ys.append(family + " - " + snd)
+                ys.append(family)# + " - " + snd)
         except:
             pass
 
