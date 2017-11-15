@@ -103,20 +103,8 @@ Our result shows that the CNN model achieves 80.5\% validation accuracy on famil
 
 In order to use common image recognition techniques (such as convolutional neural networks) to analyze the data, some simple methods to reduce the dimensionality of the data exist, such as taking the mean, minimum, or maximum along the depth axis. However, this discards information. 
 
-We intend to make better use of the 3D information present in the raw data by developing a neural network architecture specifically for classifying 3D voxels. Due to the relative scarcity of data for a deep learning approach, we have decided to augment our dataset with synthetic data so that our model can better learn the relationship between shapes and their image stack representations. For example, we might take a deformable part model approach by learning to recognize certain primitives shapes that comprise the 3D structures. To this end, we have developed a framework for generating synthetic confocal microscope data from basic 3D shapes, creating image stacks with the objects oriented randomly. It is also important to incorporate the optical artifacts inherent to the measurement technique, which we have done by convolving the sharp 3D volumes with a depth-axis aligned conic filter. Topics of future investigation will therefore involve choosing a set of features with reasonable coverage, finding a neural network architecture that is suited to the associated recognition tasks, and assessing the performance of a classification method using these features.
+We intend to make better use of the 3D information present in the raw data by developing a neural network architecture specifically for classifying 3D voxels\cite{DBLP:conf/iros/MaturanaS15,brock2016generative}. Due to the relative scarcity of data for a deep learning approach, we have decided to augment our dataset with synthetic data so that our model can better learn the relationship between shapes and their image stack representations. For example, we might take a deformable part model approach by learning to recognize certain primitives shapes that comprise the 3D structures. To this end, we have developed a framework for generating synthetic confocal microscope data from basic 3D shapes, creating image stacks with the objects oriented randomly. It is also important to incorporate the optical artifacts inherent to the measurement technique, which we have done by convolving the sharp 3D volumes with a depth-axis aligned conic filter. Topics of future investigation will therefore involve choosing a set of features with reasonable coverage, finding a neural network architecture that is suited to the associated recognition tasks, and assessing the performance of a classification method using these features.
 
-%[1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms
-%for connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and
-%T.K.\ Leen (eds.), {\it Advances in Neural Information Processing
-%  Systems 7}, pp.\ 609--616. Cambridge, MA: MIT Press.
-
-%[2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS:
-%  Exploring Realistic Neural Models with the GEneral NEural SImulation
-%  System.}  New York: TELOS/Springer--Verlag.
-
-%[3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of
-%learning and recall at excitatory recurrent synapses and cholinergic
-%modulation in rat hippocampal region CA3. {\it Journal of
-%  Neuroscience} {\bf 15}(7):5249-5262.
-
+\bibliography{milestone}
+\bibliographystyle{plain}
 \end{document}
