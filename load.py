@@ -1,60 +1,98 @@
 from __future__ import absolute_import 
 from __future__ import print_function
 
-import h5py
-import matplotlib.pyplot as plt
+import numpy as np
+from scipy.misc import imresize
 
 import os
-import numpy as np
+import h5py
+import parse
+import re
 
-from scipy.misc import imresize
 from pprint import pprint
 
-import json
 
-def load(file_name, width, height):
+def process_label(label_segments):
+    """ Given the label of an object, clean it up into subfamily, tribe and genus """
 
-    f = h5py.File(file_name, "r")
+    processed = []
 
-    Xs = []
-    ys = []
+    # subfamily
+    r = parse.parse('{}- Subfamily', label_segments[0])
+    if r is not None:
+        processed.append(r[0].strip().lower()) 
+    else:
+        raise RuntimeError('unable to get subfamily name from %r' % dirname)
 
-    max_width = 512
-    max_height = 512
+    # tribe
+    r = parse.parse('{}- Tribe', label_segments[1])
+    if r is not None:
+        processed.append(r[0].strip().lower()) 
+    else:
+        processed.append(label_segments[1].strip().lower()) 
 
-    def load_handler(name):
-        data = f[name]
-        try:
-            if data.shape[0] > 100 and data.shape[1] > 100:
+    # genus
+    s = label_segments[2].replace('Copy of ', '')
+    idx_first_nonletter = re.search('[^a-zA-Z]', s).start()
+    processed.append(s[:idx_first_nonletter].lower())
 
-                if len(data.shape) == 3:
-                    X = np.mean(data, -1)
-                else:
-                    X = data
-
-                w_pad = max_width - X.shape[0]
-                w_pad = (int(w_pad / 2), int(w_pad - w_pad / 2))
-                
-                h_pad = max_height - X.shape[1]
-                h_pad = (int(h_pad / 2), int(h_pad - h_pad / 2))
-
-                X = np.pad(X, pad_width=(w_pad, h_pad), mode='constant', constant_values=0)
-
-                if width < max_width or height < max_height:
-                    X = imresize(X, (width, height))
-
-                segs = name.split('/')
-
-                family = segs[6].split('-')[0].strip()
-                snd = segs[7].strip()
-
-                Xs.append(X)
-                ys.append(family)# + " - " + snd)
-        except:
-            pass
-
-    f.visit(load_handler)
-
-    return Xs, ys
+    return processed
 
 
+def load_data(file_name, img_size) :
+    """Prints the HDF5 file structure"""
+    file = h5py.File(file_name, 'r') 
+    item = file 
+    data = []
+    load_into_tree(item, img_size, collector=data)
+    file.close()
+    return data
+ 
+def load_into_tree(g, img_size, prefix=[], collector=[]) :
+    """Prints the input file/group/dataset (g) name and begin iterations on its content
+        Args:
+            g: a h5py object
+            img_size: a tuple (width, height) representing the target img size
+            prefix: the label prefix of the current object
+            collector: a list used to collect data
+    """
+    if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
+        
+        for key, val in dict(g).iteritems() :
+            subg = val
+            #print(offset, key) #,"   ", subg.name #, val, subg.len(), type(subg),
+            if len(dict(g)) == 1:
+                new_prefix = prefix
+            else:
+                new_prefix = prefix + [key]
+            load_into_tree(subg, img_size, new_prefix, collector)
+
+    elif isinstance(g, h5py.Dataset):
+        #print('(Dataset)', g.name, '    len =', g.shape) #, g.dtype
+        data = g
+        if data.shape[0] > 100 and data.shape[1] > 100:
+            if len(data.shape) == 3:
+                X = np.mean(data, -1)
+            else:
+                X = data
+
+            # pad them into square images
+            h_pad = (0, 0)
+            w_pad = (0, 0)
+
+            if X.shape[0] > X.shape[1]:
+                delta = X.shape[0] - X.shape[1]
+                w_pad = (int(delta / 2), int(delta / 2))
+            if X.shape[1] > X.shape[0]:
+                delta = X.shape[1] - X.shape[1]
+                h_pad = (int(delta / 2), int(delta / 2))
+
+            X = np.pad(X, pad_width=(w_pad, h_pad), mode='constant', constant_values=0)
+            X = imresize(X, img_size)
+
+            collector.append((X, process_label(prefix)))
+ 
+if __name__ == "__main__" :
+    data = load_data(os.path.join("data", "meandata.hdf5"), img_size=(32,32))
+    pprint(data)
+    
