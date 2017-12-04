@@ -34,7 +34,7 @@ def batch_data(data, batch_size):
     return data_out
 
 
-def main(input_dir="data", cuda_enable=False, examples_to_demo=0):
+def main(input_dir="data", cuda_enable=False):
 
     # load params
     params = json.load(open('params.json'))
@@ -81,10 +81,11 @@ def main(input_dir="data", cuda_enable=False, examples_to_demo=0):
 
         train_acc, dev_acc = classifier.train(net, train_data, dev_data, params, cuda_enable)
 
-        if examples_to_demo > 0:
-            show_data = [d_dev[i] for i in np.random.randint(len(dev_data), size=examples_to_demo)]
-            show_data = batch_data(process_data(show_data), batch_size=1) 
-            classifier.test(net, show_data, cuda_enable, show_example=True)
+        ## show images
+        #if examples_to_demo > 0:
+        #    show_data = [d_dev[i] for i in np.random.randint(len(dev_data), size=examples_to_demo)]
+        #    show_data = batch_data(process_data(show_data), batch_size=1) 
+        #    classifier.test(net, show_data, cuda_enable, show_example=True)
 
         with open("result.log", "w") as f:
             f.write("train_acc, dev_acc\n")
@@ -99,4 +100,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main("data", cuda_enable=args.cuda, examples_to_demo=0)
+    main(input_dir="data", output_dir="out", cuda_enable=args.cuda)

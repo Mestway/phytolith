@@ -27,5 +27,5 @@ def plot_from_file(file_name):
 	plot_acc(train_acc, test_acc)
 
 if __name__ == '__main__':
-	plot_from_file("result.log")
+	plot_from_file("output/result.log")
 	plt.show()
