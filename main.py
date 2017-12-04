@@ -7,15 +7,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import json
+import argparse
 
 from load import load_data
 from linear_model import LinearModel
-
 import classifier
 
 np.random.seed(999)
 
-params = json.load(open('params.json'))
+
 
 
 def batch_data(data, batch_size):
@@ -35,6 +35,11 @@ def batch_data(data, batch_size):
 
 
 def main(input_dir="data", cuda_enable=False, examples_to_demo=0):
+
+    # load params
+    params = json.load(open('params.json'))
+    if cuda_enable:
+        params = json.load(open('params_cuda.json'))
 
     for data_file in ["zoomeddata_32_64_64.hdf5"]:
 
@@ -88,4 +93,10 @@ def main(input_dir="data", cuda_enable=False, examples_to_demo=0):
 
 
 if __name__ == '__main__':
-    main("data", cuda_enable=False, examples_to_demo=3)
+
+    parser = argparse.ArgumentParser(description='Phytolith classifier')
+    parser.add_argument('--cuda', dest='cuda', default=False, action='store_true')
+
+    args = parser.parse_args()
+
+    main("data", cuda_enable=args.cuda, examples_to_demo=0)
