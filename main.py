@@ -7,56 +7,85 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import json
-import tensorflow as tf
 
 from load import load_data
+from linear_model import LinearModel
 
-from cnn import CNNModel
-from linear import LinearModel
+import classifier
 
 np.random.seed(999)
 
 params = json.load(open('params.json'))
 
-def main(input_dir="data"):
 
-    for data_file in ["meandata.hdf5"]:#, "mindata.hdf5", "maxdata.hdf5"]:
+def batch_data(data, batch_size):
+    """ Given X, y, batch them """
 
-        data = load_data(os.path.join(input_dir, data_file), img_size=(params["width"], params["height"]))
+    batch_num = int(np.ceil(len(data) / float(batch_size)))
 
-        Xs = [d[0] for d in data]
-        ys = [d[1] for d in data]
+    data_out = []
+    for i in range(batch_num):
+        l = i * batch_size
+        r = min((i + 1) * batch_size, len(data))
 
-        rand_indices = np.random.permutation(len(Xs))
+        data_out.append((np.array([d[0] for d in data[l:r]], dtype=np.float32),
+                         np.array([d[1] for d in data[l:r]], dtype=np.int64)))
 
-        Xs = [Xs[i] for i in rand_indices]
-        ys = [ys[i] for i in rand_indices]
+    return data_out
 
-        #for i in range(5):
-        #    plt.imshow(Xs[i])
-        #    plt.show()
 
-        Xs = np.array([X.flatten() for X in Xs])
-        ys = ["_".join(y) for y in ys]
+def main(input_dir="data", cuda_enable=False, examples_to_demo=0):
 
-        all_labels = list(set(ys))
-        ys = [all_labels.index(y) for y in ys]
+    for data_file in ["zoomeddata_32_64_64.hdf5"]:
 
-        split_indices = [int(0.6 * len(Xs)), int(0.8 * len(Xs))]
+        d_train, d_dev, d_test = load_data(os.path.join(input_dir, data_file),
+                                           img_size=(params["width"], params["height"]),
+                                           num_stack=params["num_stack"])
 
-        X_train = Xs[:split_indices[0]]
-        y_train = ys[:split_indices[0]]
+        vocab = {
+            "subfamily": [],
+            "tribe": [],
+            "genus": []
+        }
+        for d in d_train:
+            vocab["subfamily"].append(d[1][0])
+            vocab["tribe"].append(d[1][1])
+            vocab["genus"].append(d[1][2])
+        for k in vocab:
+            vocab[k] = list(set(vocab[k]))
 
-        X_dev = Xs[split_indices[0] + 1: split_indices[1]]
-        y_dev = ys[split_indices[0] + 1: split_indices[1]]
 
-        #X_test = Xs[split_indices[1] + 1:]
-        #y_test = ys[split_indices[1] + 1:]
+        def process_data(data, tree_label=False):
+            rand_indices = np.random.permutation(len(data))
+            if not tree_label:
+                data_out = [(data[i][0], vocab["genus"].index(data[i][1][2])) 
+                            for i in rand_indices]
+            else:
+                data_out = [(data[i][0], 
+                             np.array([vocab["subfamily"].index(data[i][1][0]), 
+                                       vocab["tribe"].index(data[i][1][1]), 
+                                       vocab["genus"].index(data[i][1][2])])) 
+                            for i in rand_indices]
+            return data_out
 
-        #model = CNNModel(params, len(yset))
-        model = LinearModel(params, len(set(ys)))
 
-        graph = model.build_and_train(X_train, y_train, X_dev, y_dev)
+        train_data = batch_data(process_data(d_train), batch_size=params["batch_size"])
+        dev_data = batch_data(process_data(d_dev), batch_size=params["batch_size"])
+
+        net = LinearModel(params, len(vocab["genus"]))
+
+        train_acc, dev_acc = classifier.train(net, train_data, dev_data, params, cuda_enable)
+
+        if examples_to_demo > 0:
+            show_data = [d_dev[i] for i in np.random.randint(len(dev_data), size=examples_to_demo)]
+            show_data = batch_data(process_data(show_data), batch_size=1) 
+            classifier.test(net, show_data, cuda_enable, show_example=True)
+
+        with open("result.log", "w") as f:
+            f.write("train_acc, dev_acc\n")
+            for i in range(len(train_acc)):
+                f.write("{:.3f}".format(train_acc[i]) + ", " + "{:.3f}".format(dev_acc[i]) + "\n")
+
 
 if __name__ == '__main__':
-    main()
+    main("data", cuda_enable=False, examples_to_demo=3)

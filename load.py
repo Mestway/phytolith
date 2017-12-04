@@ -10,6 +10,7 @@ import parse
 import re
 
 from pprint import pprint
+import matplotlib.pyplot as plt
 
 
 def process_label(label_segments):
@@ -38,17 +39,44 @@ def process_label(label_segments):
 
     return processed
 
-
-def load_data(file_name, img_size) :
+def load_data(file_name, img_size=None, num_stack=None, to_XY=False) :
     """Prints the HDF5 file structure"""
     file = h5py.File(file_name, 'r') 
     item = file 
     data = []
-    load_into_tree(item, img_size, collector=data)
+    load_into_tree(item, img_size, num_stack, prefix=[], collector=data)
     file.close()
-    return data
+
+    train_data = []
+    dev_data = []
+    test_data = []
+
+    def split_fn(l):
+        return l[:int(0.2 * len(l))], l[int(0.2 * len(l)):int(0.3 * len(l))], l[int(0.3 * len(l)):]
+
+    class_dict = {}
+    for d in data:
+        label = "_".join(d[1])
+        if label not in class_dict:
+            class_dict[label] = []
+        class_dict[label].append(d)
+
+    # split evenly for each classes
+    np.random.seed(789)
+    for k in class_dict:
+        indices = np.random.permutation(len(class_dict[k]))
+        l = [class_dict[k][i] for i in indices]
+        test_l, dev_l, train_l = split_fn(l)
+        
+        test_data.extend(test_l)
+        dev_data.extend(dev_l)
+        train_data.extend(train_l)
+    np.random.seed(None)
+
+    return train_data, dev_data, test_data
+
  
-def load_into_tree(g, img_size, prefix=[], collector=[]) :
+def load_into_tree(g, img_size, num_stack, prefix, collector) :
     """Prints the input file/group/dataset (g) name and begin iterations on its content
         Args:
             g: a h5py object
@@ -58,41 +86,43 @@ def load_into_tree(g, img_size, prefix=[], collector=[]) :
     """
     if isinstance(g, h5py.File) or isinstance(g, h5py.Group) :
         
-        for key, val in dict(g).iteritems() :
-            subg = val
+        dg = dict(g)
+
+        for key in dg:
+            subg = dg[key]
             #print(offset, key) #,"   ", subg.name #, val, subg.len(), type(subg),
             if len(dict(g)) == 1:
                 new_prefix = prefix
             else:
                 new_prefix = prefix + [key]
-            load_into_tree(subg, img_size, new_prefix, collector)
+            load_into_tree(subg, img_size, num_stack, new_prefix, collector)
 
     elif isinstance(g, h5py.Dataset):
-        #print('(Dataset)', g.name, '    len =', g.shape) #, g.dtype
-        data = g
-        if data.shape[0] > 100 and data.shape[1] > 100:
-            if len(data.shape) == 3:
-                X = np.mean(data, -1)
-            else:
-                X = data
 
-            # pad them into square images
-            h_pad = (0, 0)
-            w_pad = (0, 0)
+        X = g
+        if num_stack is not None:
+            # we need to resize stack
+            stride = int(len(g) / num_stack)
+            X = []
+            for i in range(num_stack):
+                l = i * stride
+                r = (i + 1) * stride if i != num_stack - 1 else len(g)
+                X.append(np.mean(g[l:r], 0))
 
-            if X.shape[0] > X.shape[1]:
-                delta = X.shape[0] - X.shape[1]
-                w_pad = (int(delta / 2), int(delta / 2))
-            if X.shape[1] > X.shape[0]:
-                delta = X.shape[1] - X.shape[1]
-                h_pad = (int(delta / 2), int(delta / 2))
+        if img_size is not None:
+            # we need to resize images
+            X = np.array([imresize(x, img_size) for x in X])
 
-            X = np.pad(X, pad_width=(w_pad, h_pad), mode='constant', constant_values=0)
-            X = imresize(X, img_size)
+        collector.append((np.array(X), process_label(prefix)))
 
-            collector.append((X, process_label(prefix)))
- 
+
 if __name__ == "__main__" :
-    data = load_data(os.path.join("data", "meandata.hdf5"), img_size=(32,32))
-    pprint(data)
+    train_data, dev_data, test_data = load_data(os.path.join("data", "zoomeddata_32_64_64.hdf5"), img_size=None, num_stack=None)
+    #pprint(data)
+    #print(len(data))
+    sl = float(len(train_data) + len(dev_data) + len(test_data))
+    print(sl)
+    print(len(train_data) / sl )
+    print(len(dev_data) / sl)
+    print(len(test_data) / sl)
     
