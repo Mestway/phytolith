@@ -1,11 +1,11 @@
 {
-	"width": 64,
+    "width": 64,
     "height": 64,
     "num_stack": 32,
 
-    "batch_size": 1000,
-    "learning_rate": 0.01,
-    "epoch_num": 100,
+    "batch_size": 500,
+    "learning_rate": 0.005,
+    "epoch_num": 300,
 
     "dropout": 0.5
 }
