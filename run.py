@@ -77,7 +77,7 @@ def main(input_dir="data", output_dir="out", cuda_enable=False):
         dev_data = batch_data(process_data(d_dev), batch_size=params["batch_size"])
 
         #net = LinearModel(params, len(vocab["genus"]))
-        net = SimpleConvModel(params, len(vocab["genus"]))
+        net = SimpleNet(params, len(vocab["genus"]))
 
         train_acc, dev_acc = classifier.train(net, train_data, dev_data, params, cuda_enable)
 

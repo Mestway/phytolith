@@ -69,14 +69,14 @@ def train(net, train_data, dev_data, params, cuda_enable):
             # forward + backward + optimize
             outputs = net(inputs)
             
-            if True or epoch == 5:
-                print(outputs)
-                _, pred = torch.max(outputs, 1)
-                print(pred.cpu().data.numpy())
-                print(labels.cpu().data.numpy())
-                print("")
-            if epoch == 50:
-                sys.exit(-1)
+            #if True or epoch == 5:
+                #print(outputs)
+            #    _, pred = torch.max(outputs, 1)
+                #print(pred.cpu().data.numpy())
+                #print(labels.cpu().data.numpy())
+                #print("")
+            #if epoch == 50:
+            #    sys.exit(-1)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()

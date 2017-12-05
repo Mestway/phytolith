@@ -24,45 +24,28 @@ class LinearModel(nn.Module):
         x = self.fc(x)
         return x
 
-
-class SimpleConvModel(nn.Module):
+class SimpleNet(nn.Module):
     
     def __init__(self, params, num_class):
-        super(SimpleConvModel, self).__init__()
+        super(SimpleNet, self).__init__()
 
         self.batch_size = params["batch_size"]
         self.num_stack = params["num_stack"]
         self.width = params["width"]
         self.height = params["height"]
 
-        out_channel_1 = 6
-        kernel_size_1 = 5
-        pool_size_1 = 2
+        self.dim = self.width * self.height * self.num_stack
 
-        self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
-        self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
-
-        w = int((self.width + 1 - kernel_size_1) / pool_size_1)
-        h = int((self.height + 1 - kernel_size_1) / pool_size_1)
-        c = out_channel_1
-
-        w, h, c = self.width, self.height, self.num_stack
-	
-
-        self.linear_dim = c * w * h
-
-        self.fc1 = nn.Linear(self.linear_dim, 300)
-        self.fc3 = nn.Linear(300, num_class)
+        M = 500
+    
+        self.fc1 = nn.Linear(self.dim, M)
+        self.fc2 = nn.Linear(M, num_class)
 
     def forward(self, x):
-        #x = self.pool1(F.relu(self.conv1(x)))
-        #m = nn.Dropout2d(p=0.5)
-        #x = m(x)
-        x = x.view(-1, self.linear_dim)
-        x = self.fc1(x)
-        x = self.fc3(x)
+        x = x.view(-1, self.dim)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
         return x
-
 
 class CNNModel(nn.Module):
     
