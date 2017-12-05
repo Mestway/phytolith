@@ -36,26 +36,30 @@ class SimpleConvModel(nn.Module):
         self.height = params["height"]
 
         out_channel_1 = 6
-        kernel_size_1 = 8
+        kernel_size_1 = 5
         pool_size_1 = 2
 
-        #self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
-        #self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
+        self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
+        self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
 
-        #w = int((self.width + 1 - kernel_size_1) / pool_size_1)
-        #h = int((self.height + 1 - kernel_size_1) / pool_size_1)
+        w = int((self.width + 1 - kernel_size_1) / pool_size_1)
+        h = int((self.height + 1 - kernel_size_1) / pool_size_1)
+        c = out_channel_1
 
-        w, h = self.width, self.height
+        w, h, c = self.width, self.height, self.num_stack
+	
 
-        self.linear_dim = self.num_stack * w * h
+        self.linear_dim = c * w * h
 
-        self.fc1 = nn.Linear(self.linear_dim, 1000)
-        self.fc3 = nn.Linear(1000, num_class)
+        self.fc1 = nn.Linear(self.linear_dim, 300)
+        self.fc3 = nn.Linear(300, num_class)
 
     def forward(self, x):
         #x = self.pool1(F.relu(self.conv1(x)))
+        #m = nn.Dropout2d(p=0.5)
+        #x = m(x)
         x = x.view(-1, self.linear_dim)
-        x = F.relu(self.fc1(x))
+        x = self.fc1(x)
         x = self.fc3(x)
         return x
 

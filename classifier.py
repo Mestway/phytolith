@@ -40,7 +40,8 @@ def train(net, train_data, dev_data, params, cuda_enable):
     learning_rate = params["learning_rate"]
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+    optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
+                #optim.Adam(net.parameters(), lr=learning_rate, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
     train_acc = []
     dev_acc = []
@@ -48,6 +49,8 @@ def train(net, train_data, dev_data, params, cuda_enable):
     for epoch in range(epoch_num):  # loop over the dataset multiple times
 
         losses = []
+        running_loss = 0.0
+        cnt = 0
 
         for i, data in enumerate(train_data):
 
@@ -65,14 +68,25 @@ def train(net, train_data, dev_data, params, cuda_enable):
 
             # forward + backward + optimize
             outputs = net(inputs)
+            
+            if True or epoch == 5:
+                print(outputs)
+                _, pred = torch.max(outputs, 1)
+                print(pred.cpu().data.numpy())
+                print(labels.cpu().data.numpy())
+                print("")
+            if epoch == 50:
+                sys.exit(-1)
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-
-            # print statistics
-            losses.append(loss.data[0])
             
-        print('[epoch %d] loss: %.3f' % (epoch + 1, np.mean(losses)))
+            running_loss += loss.data[0]
+            cnt += 1
+            # print statistics
+            #losses.append(loss.data[0])
+            
+        print('[epoch %d] loss: %.3f' % (epoch + 1, running_loss / cnt))
 
         train_acc.append(test(net, train_data, cuda_enable))
         dev_acc.append(test(net, dev_data, cuda_enable))
