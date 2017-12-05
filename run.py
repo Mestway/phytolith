@@ -58,14 +58,20 @@ def main(input_dir="data", output_dir="out", cuda_enable=False):
         for k in vocab:
             vocab[k] = list(set(vocab[k]))
 
+        
+        mean_image = np.mean([d[0] for d in d_train])
+        std_image = np.std([d[0] for d in d_train])
+
+        def normalize_fn(X):
+            return ((X - mean_image) / 255.)
 
         def process_data(data, tree_label=False):
             rand_indices = np.random.permutation(len(data))
             if not tree_label:
-                data_out = [(data[i][0], vocab["genus"].index(data[i][1][2])) 
+                data_out = [(normalize_fn(data[i][0]), vocab["genus"].index(data[i][1][2])) 
                             for i in rand_indices]
             else:
-                data_out = [(data[i][0], 
+                data_out = [(normalize_fn(data[i][0]), 
                              np.array([vocab["subfamily"].index(data[i][1][0]), 
                                        vocab["tribe"].index(data[i][1][1]), 
                                        vocab["genus"].index(data[i][1][2])])) 

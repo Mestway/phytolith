@@ -39,7 +39,7 @@ def train(net, train_data, dev_data, params, cuda_enable):
     epoch_num = params["epoch_num"]
     learning_rate = params["learning_rate"]
 
-    criterion = nn.CrossEntropyLoss()
+    loss_fn =  nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
                 #optim.Adam(net.parameters(), lr=learning_rate, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
 
@@ -68,18 +68,20 @@ def train(net, train_data, dev_data, params, cuda_enable):
 
             # forward + backward + optimize
             outputs = net(inputs)
-            
-            #if True or epoch == 5:
-                #print(outputs)
-            #    _, pred = torch.max(outputs, 1)
-                #print(pred.cpu().data.numpy())
-                #print(labels.cpu().data.numpy())
-                #print("")
-            #if epoch == 50:
-            #    sys.exit(-1)
-            loss = criterion(outputs, labels)
+            loss = loss_fn(outputs, labels)
+
+            '''
+            my_loss = 0.
+            a = nn.LogSoftmax()(outputs)
+            label_content = labels.data.numpy()
+            for i in range(len(label_content)):
+                my_loss += - a[i][label_content[i]].data.numpy()[0]
+            my_loss /= 5
+            '''
             loss.backward()
             optimizer.step()
+
+            #print("{} -> {}".format(my_loss, loss.data[0]))
             
             running_loss += loss.data[0]
             cnt += 1
