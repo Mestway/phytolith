@@ -87,7 +87,8 @@ def main(input_dir="data", output_dir="out", cuda_enable=False):
         #    show_data = batch_data(process_data(show_data), batch_size=1) 
         #    classifier.test(net, show_data, cuda_enable, show_example=True)
 
-        with open(os.path.join(output_dir, "result_{}.log".format(datetime.now().strftime("%b_%d_%f").lower())), "w") as f:
+        time_stamp = datetime.now().strftime("%b_%d_%f").lower()
+        with open(os.path.join(output_dir, "result.log"), "w") as f:
             f.write("train_acc, dev_acc\n")
             for i in range(len(train_acc)):
                 f.write("{:.3f}".format(train_acc[i]) + ", " + "{:.3f}".format(dev_acc[i]) + "\n")
@@ -100,4 +101,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     main(input_dir="data", output_dir="output", cuda_enable=args.cuda)
-    
+

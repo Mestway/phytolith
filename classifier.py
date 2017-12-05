@@ -72,7 +72,7 @@ def train(net, train_data, dev_data, params, cuda_enable):
             # print statistics
             losses.append(loss.data[0])
             
-        print('[epoch %d] loss: %.3f' % (epoch + 1, (np.mean(losses) / params["batch_size"])))
+        print('[epoch %d] loss: %.3f' % (epoch + 1, np.mean(losses)))
 
         train_acc.append(test(net, train_data, cuda_enable))
         dev_acc.append(test(net, dev_data, cuda_enable))
