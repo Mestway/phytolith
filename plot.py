@@ -8,7 +8,7 @@ def plot_acc(train_acc, test_acc):
     ax.set_ylabel('accuracies')
     line1, = plt.plot([i for i in range(len(train_acc))], train_acc, "b-", label='train_acc')
     line2, = plt.plot([i for i in range(len(train_acc))], test_acc, "r-", label='dev_acc')
-    plt.ylim( 0, 1. )
+    plt.ylim(0, 1.)
     plt.legend()
 
 def plot_from_file(file_name):

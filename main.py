@@ -5,17 +5,16 @@ import os
 from pprint import pprint
 import matplotlib.pyplot as plt
 import numpy as np
+from datetime import datetime
 
 import json
 import argparse
 
 from load import load_data
-from linear_model import LinearModel
+from models import LinearModel, CNNModel
 import classifier
 
 np.random.seed(999)
-
-
 
 
 def batch_data(data, batch_size):
@@ -34,7 +33,7 @@ def batch_data(data, batch_size):
     return data_out
 
 
-def main(input_dir="data", cuda_enable=False):
+def main(input_dir="data", output_dir="out", cuda_enable=False):
 
     # load params
     params = json.load(open('params.json'))
@@ -77,7 +76,8 @@ def main(input_dir="data", cuda_enable=False):
         train_data = batch_data(process_data(d_train), batch_size=params["batch_size"])
         dev_data = batch_data(process_data(d_dev), batch_size=params["batch_size"])
 
-        net = LinearModel(params, len(vocab["genus"]))
+        #net = LinearModel(params, len(vocab["genus"]))
+        net = CNNModel(params, len(vocab["genus"]))
 
         train_acc, dev_acc = classifier.train(net, train_data, dev_data, params, cuda_enable)
 
@@ -87,7 +87,7 @@ def main(input_dir="data", cuda_enable=False):
         #    show_data = batch_data(process_data(show_data), batch_size=1) 
         #    classifier.test(net, show_data, cuda_enable, show_example=True)
 
-        with open("result.log", "w") as f:
+        with open(os.path.join(output_dir, "result_{}.log".format(datetime.now().strftime("%b_%d_%f").lower())), "w") as f:
             f.write("train_acc, dev_acc\n")
             for i in range(len(train_acc)):
                 f.write("{:.3f}".format(train_acc[i]) + ", " + "{:.3f}".format(dev_acc[i]) + "\n")
@@ -99,5 +99,5 @@ if __name__ == '__main__':
     parser.add_argument('--cuda', dest='cuda', default=False, action='store_true')
 
     args = parser.parse_args()
-
-    main(input_dir="data", output_dir="out", cuda_enable=args.cuda)
+    main(input_dir="data", output_dir="output", cuda_enable=args.cuda)
+    
