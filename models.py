@@ -38,7 +38,7 @@ class CNNModel(nn.Module):
         #self.C_1 = 0 # number of channels in the first conv layers
 
         out_channel_1 = 6
-        kernel_size_1 = 5
+        kernel_size_1 = 15
         pool_size_1 = 2
 
         self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
@@ -46,7 +46,7 @@ class CNNModel(nn.Module):
 
         out_channel_2 = 16
         kernel_size_2 = 5
-        pool_size_2 = 3
+        pool_size_2 = 2
 
         w1 = int((self.width + 1 - kernel_size_1) / pool_size_1)
         h1 = int((self.height + 1 - kernel_size_1) / pool_size_1)
@@ -59,9 +59,9 @@ class CNNModel(nn.Module):
 
         self.linear_dim = out_channel_2 * w2 * h2
 
-        self.fc1 = nn.Linear(self.linear_dim, 800)
-        self.fc2 = nn.Linear(800, 120)
-        self.fc3 = nn.Linear(120, num_class)
+        self.fc1 = nn.Linear(self.linear_dim, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, num_class)
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
