@@ -25,6 +25,41 @@ class LinearModel(nn.Module):
         return x
 
 
+class SimpleConvModel(nn.Module):
+    
+    def __init__(self, params, num_class):
+        super(SimpleConvModel, self).__init__()
+
+        self.batch_size = params["batch_size"]
+        self.num_stack = params["num_stack"]
+        self.width = params["width"]
+        self.height = params["height"]
+
+        out_channel_1 = 6
+        kernel_size_1 = 8
+        pool_size_1 = 2
+
+        #self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
+        #self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
+
+        #w = int((self.width + 1 - kernel_size_1) / pool_size_1)
+        #h = int((self.height + 1 - kernel_size_1) / pool_size_1)
+
+        w, h = self.width, self.height
+
+        self.linear_dim = self.num_stack * w * h
+
+        self.fc1 = nn.Linear(self.linear_dim, 1000)
+        self.fc3 = nn.Linear(1000, num_class)
+
+    def forward(self, x):
+        #x = self.pool1(F.relu(self.conv1(x)))
+        x = x.view(-1, self.linear_dim)
+        x = F.relu(self.fc1(x))
+        x = self.fc3(x)
+        return x
+
+
 class CNNModel(nn.Module):
     
     def __init__(self, params, num_class):
