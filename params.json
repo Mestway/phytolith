@@ -1,11 +1,31 @@
 {
-	"width": 32,
-    "height": 32,
-    "num_stack": 3,
+    "add_synthetic_data": false,
+    "tree_prediction": false,
+
+    "img_size": [3, 32, 32],
 
     "batch_size": 5,
     "learning_rate": 0.01,
     "epoch_num": 5,
 
-    "dropout": 0.5
+    "ConvNet": {
+        "out_channel_1" : 6,
+        "kernel_size_1" : 15,
+        "pool_size_1" : 2,
+        "drop_prob": 0.5,
+
+        "fc_out_size_1": 500
+    },
+
+    "SimpleNet": {
+        "fc_out_size_1": 500
+    },
+
+    "SimpleConvNet": {
+        "out_channel_1" : 6,
+        "kernel_size_1" : 15,
+        "pool_size_1" : 2,
+        "drop_prob": 0.5
+    }
+
 }

@@ -39,12 +39,12 @@ def process_label(label_segments):
 
     return processed
 
-def load_data(file_name, img_size=None, num_stack=None, to_XY=False) :
+def load_data(file_name, img_size=None, to_XY=False) :
     """Prints the HDF5 file structure"""
     file = h5py.File(file_name, 'r') 
     item = file 
     data = []
-    load_into_tree(item, img_size, num_stack, prefix=[], collector=data)
+    load_into_tree(item, img_size, prefix=[], collector=data)
     file.close()
 
     train_data = []
@@ -76,7 +76,7 @@ def load_data(file_name, img_size=None, num_stack=None, to_XY=False) :
     return train_data, dev_data, test_data
 
  
-def load_into_tree(g, img_size, num_stack, prefix, collector) :
+def load_into_tree(g, img_size, prefix, collector) :
     """Prints the input file/group/dataset (g) name and begin iterations on its content
         Args:
             g: a h5py object
@@ -95,12 +95,15 @@ def load_into_tree(g, img_size, num_stack, prefix, collector) :
                 new_prefix = prefix
             else:
                 new_prefix = prefix + [key]
-            load_into_tree(subg, img_size, num_stack, new_prefix, collector)
+            load_into_tree(subg, img_size, new_prefix, collector)
 
     elif isinstance(g, h5py.Dataset):
 
         X = g
-        if num_stack is not None:
+
+        if img_size is not None:
+
+            num_stack = img_size[0]
             # we need to resize stack
             stride = int(len(g) / num_stack)
             X = []
@@ -109,15 +112,14 @@ def load_into_tree(g, img_size, num_stack, prefix, collector) :
                 r = (i + 1) * stride if i != num_stack - 1 else len(g)
                 X.append(np.mean(g[l:r], 0))
 
-        if img_size is not None:
             # we need to resize images
-            X = np.array([imresize(x, img_size) for x in X])
+            X = np.array([imresize(x, (img_size[1], img_size[2])) for x in X])
 
         collector.append((np.array(X), process_label(prefix)))
 
 
 if __name__ == "__main__" :
-    train_data, dev_data, test_data = load_data(os.path.join("data", "zoomeddata_32_64_64.hdf5"), img_size=None, num_stack=None)
+    train_data, dev_data, test_data = load_data(os.path.join("data", "zoomeddata_32_64_64.hdf5"), img_size=None)
     #pprint(data)
     #print(len(data))
     sl = float(len(train_data) + len(dev_data) + len(test_data))

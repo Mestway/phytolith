@@ -11,9 +11,7 @@ class LinearModel(nn.Module):
         super(LinearModel, self).__init__()
         
         self.batch_size = params["batch_size"]
-        self.num_stack = params["num_stack"]
-        self.width = params["width"]
-        self.height = params["height"]
+        self.num_stack, self.width, self.height = params["img_size"]
 
         self.dim = self.num_stack * self.width * self.height
         
@@ -24,72 +22,103 @@ class LinearModel(nn.Module):
         x = self.fc(x)
         return x
 
+class SimpleConvNet(nn.Module):
+    
+    def __init__(self, params, num_class):
+        super(SimpleConvNet, self).__init__()
+
+        self.batch_size = params["batch_size"]
+        self.num_stack, self.width, self.height = params["img_size"]
+
+        model_params = params["SimpleConvNet"]
+
+        out_channel_1 = model_params["out_channel_1"]
+        kernel_size_1 = model_params["kernel_size_1"]
+        pool_size_1 = model_params["pool_size_1"]
+        drop_prob = model_params["drop_prob"]
+
+        self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
+        self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
+        self.batch_norm_1 = nn.BatchNorm2d(out_channel_1)
+        self.dropout = nn.Dropout(drop_prob)
+
+        w1 = int((self.width + 1 - kernel_size_1) / pool_size_1)
+        h1 = int((self.height + 1 - kernel_size_1) / pool_size_1)
+
+        self.linear_dim = out_channel_1 * w1 * h1
+
+        self.fc1 = nn.Linear(self.linear_dim, num_class)
+
+
+    def forward(self, x):
+        x = self.pool1(F.relu(self.conv1(x)))
+        x = self.batch_norm_1(x)
+        #x = self.dropout(x)
+        x = x.view(-1, self.linear_dim)
+        x = self.fc1(x)
+        return x
+
 class SimpleNet(nn.Module):
     
     def __init__(self, params, num_class):
         super(SimpleNet, self).__init__()
 
         self.batch_size = params["batch_size"]
-        self.num_stack = params["num_stack"]
-        self.width = params["width"]
-        self.height = params["height"]
+        self.num_stack, self.width, self.height = params["img_size"]
 
-        self.dim = self.width * self.height * self.num_stack
+        fc_out_size_1 = params["SimpleNet"]["fc_out_size_1"]
 
-        M = 500
-    
-        self.fc1 = nn.Linear(self.dim, M)
-        self.fc2 = nn.Linear(M, num_class)
+        self.linear_dim = self.num_stack * self.width * self.height
+
+        self.fc1 = nn.Linear(self.linear_dim, fc_out_size_1)
+        self.batch_norm_1 = nn.BatchNorm1d(fc_out_size_1)
+        self.fc2 = nn.Linear(fc_out_size_1, num_class)
 
     def forward(self, x):
-        x = x.view(-1, self.dim)
+        x = x.view(-1, self.linear_dim)
         x = F.relu(self.fc1(x))
+        x = self.batch_norm_1(x)
         x = self.fc2(x)
         return x
 
-class CNNModel(nn.Module):
+
+class ConvNet(nn.Module):
     
     def __init__(self, params, num_class):
-        super(CNNModel, self).__init__()
+        super(ConvNet, self).__init__()
 
         self.batch_size = params["batch_size"]
-        self.num_stack = params["num_stack"]
-        self.width = params["width"]
-        self.height = params["height"]
 
-        #self.C_1 = 0 # number of channels in the first conv layers
+        self.num_stack, self.width, self.height = params["img_size"]
 
-        out_channel_1 = 6
-        kernel_size_1 = 15
-        pool_size_1 = 2
+        model_params = params["ConvNet"]
+
+        out_channel_1 = model_params["out_channel_1"]
+        kernel_size_1 = model_params["kernel_size_1"]
+        pool_size_1 = model_params["pool_size_1"]
+        drop_prob = model_params["drop_prob"]
+        fc_out_size_1 = model_params["fc_out_size_1"]
 
         self.conv1 = nn.Conv2d(self.num_stack, out_channel_1, kernel_size_1)
         self.pool1 = nn.MaxPool2d(pool_size_1, pool_size_1)
-
-        out_channel_2 = 16
-        kernel_size_2 = 5
-        pool_size_2 = 2
+        self.batch_norm_1 = nn.BatchNorm2d(out_channel_1)
+        self.dropout = nn.Dropout(drop_prob)
 
         w1 = int((self.width + 1 - kernel_size_1) / pool_size_1)
         h1 = int((self.height + 1 - kernel_size_1) / pool_size_1)
 
-        self.conv2 = nn.Conv2d(out_channel_1, out_channel_2, kernel_size_2)
-        self.pool2 = nn.MaxPool2d(pool_size_2, pool_size_2)
+        self.linear_dim = out_channel_1 * w1 * h1
 
-        w2 = int((w1 + 1 - kernel_size_2) / pool_size_2)
-        h2 = int((h1 + 1 - kernel_size_2) / pool_size_2)
-
-        self.linear_dim = out_channel_2 * w2 * h2
-
-        self.fc1 = nn.Linear(self.linear_dim, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, num_class)
+        self.fc1 = nn.Linear(self.linear_dim, fc_out_size_1)
+        self.batch_norm_2 = nn.BatchNorm1d(fc_out_size_1)
+        self.fc2 = nn.Linear(fc_out_size_1, num_class)
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
-        x = self.pool2(F.relu(self.conv2(x)))
+        x = self.batch_norm_1(x)
+        #x = self.dropout(x)
         x = x.view(-1, self.linear_dim)
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = self.batch_norm_2(x)
+        x = self.fc2(x)
         return x
