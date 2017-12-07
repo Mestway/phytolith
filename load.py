@@ -127,4 +127,7 @@ if __name__ == "__main__" :
     print(len(train_data) / sl )
     print(len(dev_data) / sl)
     print(len(test_data) / sl)
+    print(len(train_data))
+    print(len(dev_data))
+    print(len(test_data))
     
