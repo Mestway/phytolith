@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  7 DEC 2017 11:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  7 DEC 2017 16:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -708,19 +708,21 @@ LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <10> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 45.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 46.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
  [1
 
 
-{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
+{/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
 
-Package natbib Warning: Citation `DBLP:conf/iros/MaturanaS15' on page 2 undefin
+Package natbib Warning: Citation `DBLP:conf/iros/MaturanaS15' on page 3 undefin
 ed on input line 102.
 
 
-Package natbib Warning: Citation `brock2016generative' on page 2 undefined on i
+Package natbib Warning: Citation `brock2016generative' on page 3 undefined on i
 nput line 102.
 
-[2]
 No file report.bbl.
 
 Package natbib Warning: There were undefined citations.
@@ -736,13 +738,13 @@ Package rerunfilecheck Info: File `report.out' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 106.
  ) 
 Here is how much of TeX's memory you used:
- 7455 strings out of 492995
- 112854 string characters out of 6132704
- 232239 words of memory out of 5000000
+ 7470 strings out of 492995
+ 112980 string characters out of 6132704
+ 231142 words of memory out of 5000000
  10829 multiletter control sequences out of 15000+600000
- 38324 words of font info for 111 fonts, out of 8000000 for 9000
+ 38974 words of font info for 121 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 31i,8n,38p,1269b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 31i,8n,38p,1305b,329s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/t
 exlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/te
 xlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/local/tex
@@ -754,7 +756,7 @@ e/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/
 /texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2017/
 texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texlive/2017/texmf-dist
 /fonts/type1/urw/times/utmr8a.pfb>
-Output written on report.pdf (3 pages, 110600 bytes).
+Output written on report.pdf (3 pages, 110626 bytes).
 PDF statistics:
  90 PDF objects out of 1000 (max. 8388607)
  74 compressed objects within 1 object stream
