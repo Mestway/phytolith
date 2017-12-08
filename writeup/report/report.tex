@@ -20,6 +20,8 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
+\usepackage{graphicx}
+\graphicspath{ {images/} }
 
 \title{Nerual Phytolith Classifier}
 
@@ -62,6 +64,16 @@ The raw data that we are considering for learning phytolith species consists of 
 
 The labels are hierarchical, consisting of subfamilies, tribes, and finally the species. All in all, there are 889 data points with around 20 examples per species. Although the data is incredibly high dimensional (in the tens of millions of dimensions) due to being volumetric, there are relatively few examples from which to learn. It is for this reason that we attempt to learn from features that may be present in the volumetric representation of the confocal micrograph, whether or not it corresponds well to the original geometry, in order to train a classifier to predict class labels from image stacks.
 
+\begin{figure}
+	\centering
+		\includegraphics[width=0.5\textwidth]{rotations}
+	\caption{Rotated and scaled data generated from a data sample}
+	\label{fig:rotated}
+\end{figure}
+
+\section{Data Preprocessing}
+
+As mentioned, the dataset only contains 889 data samples, resulting in as little as one example in several classes. This motivated See Figure \ref{fig:rotated} for an example of our synthetic data.
 
 \section{Baseline Models \& Result}
 
