@@ -79,7 +79,7 @@ As mentioned, the dataset only contains 889 data samples, resulting in as little
 
 \section{Model Choice}
 
-We experiment with four simple models: linear classifier (LinearModel), a neural network with one hidden layer (FC), a neural network with one convolution layer (Conv) and one network with both convolution layer and a hidden layer (ConvFC). We choose shallow neural model due to the fact that we have a very small sized training dataset.
+We experiment with four simple models: linear classifier (LinearModel), a neural network with one hidden layer (FC), a neural network with one convolution layer (Conv) and one network with both convolution layer and a hidden layer (ConvFC). We choose shallow neural models due to the fact that we have a very small training dataset (deep networks would overfit).
 
 In this section, we use ${X}$ and ${y}$ to refer to our training input and output, where each ${x}_i^T\in {X}$ is a vector representing a image and each ${y_i}$ is the label of that image (a 3 dimension array containing genus, tribe and genus information for every image). We use ${p}$ to represent predictions made by our classifier. 
 
