@@ -72,11 +72,10 @@ The labels are hierarchical, consisting of subfamilies, tribes, and finally the 
 	\label{fig:rotated}
 \end{figure}
 
-\section{Data Preprocessing}
-
-As mentioned, the dataset only contains 889 data samples, resulting in as little as one example in several classes. This motivated See Figure \ref{fig:rotated} for an example of our synthetic data.
-
 \section{Data Augmentation}
+
+As mentioned, the dataset only contains 889 data samples, resulting in as little as one example in several classes. This motivated us to augment the dataset with random numbers of randomly rotated and scaled variants of each sample in order to provide the classifiers with different vector representations of semantically identical samples. The specific method used to transform the data was cubic spline interpolation, with missing pixels/voxels filled in with using nearest neighbor sampling. Rotations were only with respect to the depth axis, since the optics of a confocal microscope creates highly directional artifacts that would not represent physically correct data at arbitrary orientations. Scales were uniform in all three dimensions in the interest of preserving proportional distances of 3D features. See Figure \ref{fig:rotated} for an example of our synthetic data.
+
 
 \section{Model Choice}
 
@@ -159,7 +158,7 @@ ConvFC 		&   58.0\%   	&   56.1\%       &    77.7\%    &  94.9\%			\\\hline
 
 \section{Future Work}
 
-From the model design and experiments, we realized that simply augmenting data is far from enough in improving model performance in case of having too few training examples. Thus using transfer learning with deeper model from Cifar-10 or ImageNet can potentially produce better results. 
+From the model design and experiments, we realized that simply augmenting data is far from enough in improving model performance in case of having too few training examples. Thus using transfer learning with deeper model from Cifar-10 or ImageNet can potentially produce better results. Another improvement might be gained from reducing the less meaningful variation in the data by better aligning the images and normalizing the intensity, perhaps using edge detection.
 
 Another consideration is that when we use tree decoders, we didn't restrict types of sub layer images and the network can still produce false genus for the tribe. Thus we consider restricting decoders with the types can potentially result in better result.
 
