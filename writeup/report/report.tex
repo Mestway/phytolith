@@ -12,6 +12,7 @@
 % to compile a camera-ready version, add the [final] option, e.g.:
 % \usepackage[final]{nips_2017}
 
+\usepackage{multirow}
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 \usepackage{hyperref}       % hyperlinks
@@ -52,56 +53,103 @@
 
 Phytoliths are microscopic formations of silica found in plant tissues. Their persistence, along with the variation in their shapes and sizes make them particularly useful in archaeological and paleoenvironmental research. Consequently, there is interest in automatically classifying phytoliths from images. Phytolith formations are divided into sub-families, which are in turn divided into tribes, which consist of individual genera.
 
-While there exists a variety of practical image classifiers, the problem for classifying confocal micrographs presents a number of challenges. Many real world objects, such as phytolith structures or medical scans, are represented in the form of 3D volumes. Instead of directly flattening 2D image stacks into a single image before feeding into a neural network, prior work shows that incorporating 3D structures in image embedding can significantly improve classification results.  In our case, there clearly exist structures that are most prevalent at specific depths, so that aggregating the layers seems like a poor choice. We therefore maintain three-dimensional images in the hopes that our classifiers can learn more meaningful features.
+While there exists a variety of practical image classifiers, the problem for classifying confocal micrographs presents a number of challenges. First, many real world objects, such as phytolith structures or medical scans, are represented in the form of 3D volumes. Instead of directly flattening 2D image stacks into a single image before feeding into a neural network, prior work shows that incorporating 3D structures in image embedding can significantly improve classification results.  In our case, there clearly exist structures that are most prevalent at specific depths, so that aggregating the layers seems like a poor choice. We therefore maintain three-dimensional images in the hopes that our classifiers can learn more meaningful features.
 
 The dataset we used was fairly small (883 image stacks) for training and testing, given that this is an image classification problem. We made some attempts to rectify this using synthetic data samples generated from existing ones, by applying random rotations and scales. Also to aid in classification, we supervised the training using all of the hierarchical class labels together. We conducted a set of experiments using a linear classifier as a baseline, together with several neural net architectures, testing their performance on the dataset when classifying genus, tribe, and sub-family. Our results yield about 60\% accuracy on genus, the lowest level of classification, and about 95\% accuracy at differentiating between the two sub-families.
 
 \section{Problem Description}
 
-The raw data that we are considering for learning phytolith species consists of image stacks from confocal micrographs of individual specimen. The images have varying resolution, number of slices, average intensity levels and apparent lighting conditions. Considered as a whole, these image stacks encode a three-dimensional representation of the organisms. However, because each pixel is the result of focusing a cone of light at a particular point in the volume, each slice contains out-of-focus features from every other slice. This makes reconstructing an actual three-dimensional form or surface from the content of the 2D image slices is nontrivial.
+The raw data that we are considering for phytolith classification consists of image stacks from confocal micrographs of individual specimen. The images have varying resolution, number of slices, average intensity levels and apparent lighting conditions. Considered as a whole, these image stacks encode a three-dimensional representation of the organisms. However, because each pixel is the result of focusing a cone of light at a particular point in the volume, each slice contains out-of-focus features from every other slice. This makes reconstructing an actual three-dimensional form or surface from the content of the 2D image slices is nontrivial.
 
 The labels are hierarchical, consisting of subfamilies, tribes, and finally the species. All in all, there are 889 data points with around 20 examples per species. Although the data is incredibly high dimensional (in the tens of millions of dimensions) due to being volumetric, there are relatively few examples from which to learn. It is for this reason that we attempt to learn from features that may be present in the volumetric representation of the confocal micrograph, whether or not it corresponds well to the original geometry, in order to train a classifier to predict class labels from image stacks.
 
 
-\section{Baseline Models \& Result}
+\section{Data Augmentation}
 
-Our baseline models include a linear classifier and a CNN model. In this section, we use $\mathbf{X}$ and $\mathbf{y}$ to refer to our training input and output, where each ${x}_i^T\in \mathbf{X}$ is a vector representing a image and each ${y_i}\in \mathbf{y}$ is the label of that image. Depending on the training objective, the label $y_i$ is an integer either between 0-7 (for predicting both family and sub-family) or 0-1 (for family only). We use $\mathbf{p}$ to represent predictions made by our classifier. Our model is implemented using Tensorflow v1.4.
+\section{Model Choice}
+
+We experiment with four simple models: linear classifier (LinearModel), a neural network with one hidden layer (FC), a neural network with one convolution layer (Conv) and one network with both convolution layer and a hidden layer (ConvFC). We choose shallow neural model due to the fact that we have a very small sized training dataset.
+
+In this section, we use ${X}$ and ${y}$ to refer to our training input and output, where each ${x}_i^T\in {X}$ is a vector representing a image and each ${y_i}$ is the label of that image (a 3 dimension array containing genus, tribe and genus information for every image). We use ${p}$ to represent predictions made by our classifier. 
 
 Each raw image stack (shaped 256 * 512 * 512) is compressed into one single image (512 * 512) by mean-pooling, and then uniformly resized into 128 * 128 sized images.
 
-\paragraph{Linear Model}
+\paragraph{Model}
 
-Our linear model predicts the label using linear transformation, as follows
-
-$$\mathit{logits} = \mathbf{X} \mathbf{W} + \mathbf{b}$$
-$$\mathbf{p} = \arg\max(\mathit{logits})$$
+Each model takes the image vector representation $X$ as input and output the image feature (denoted as $\mathit{outs}$) as a vector of shape $N\times (|F| + |T| + |G|)$ ($|F|, |T|, |G|$ refers to the number of subfamilies, the number of tribes and the number of genus). Concrete model specifications are shown below. Besides, between non-linear layers, we use batch normalization to reduce over-fitting.
 
 
-The training objective is to minimize the cross entropy loss (with L1 regularization):
+\begin{itemize}
+	\item (\emph{LinearModel}) $\mathit{outs} = {X} {W} + {b}$
+	\item (\emph{FC}) $\mathit{outs} = \mathit{relu}({X} {W}_1 + b_1)\cdot W_2 + b_2$
+	\item (\emph{Conv}) $\mathit{outs} = \mathit{maxpool}(\mathit{conv}({X}), d_{\mathit{pool}})\cdot W_2 + b_2$
+	\item (\emph{ConvFC}) $\mathit{outs} = \mathit{relu}(\mathit{maxpool}(\mathit{conv}({X}), d_{\mathit{pool}})\cdot W_1 + b_1)\cdot W_2 + b_2$
 
-$$\mathit{loss} = -\sum\limits_{i} y_i\log(\mathit{softmax}(\mathit{logits})) + \lambda \|\mathbf{W}\|_1$$
+\end{itemize}
 
-\paragraph{CNN Model}
+To train these models, we supervise the model on all attributes of the image. Given the output from the model, we first calculate the image's distributions over subfamily, tribe and genus using the softmax function ($t_1, t_2, t_3$ below).
 
-Our CNN model is a two layer convolution network. The first layer consists of 32 filters and the second with 64 filters, both using max-pooling with stride 2 and kernel size 2.
+\[
+\begin{array}{l}
+t_1 = \mathit{softmax}(\mathit{outs}[0:|F|])\\
+t_2 = \mathit{softmax}(\mathit{outs}[|F|: |F| + |T|])\\
+t_3 = \mathit{softmax}(\mathit{outs}[|F| + |T|:|F| + |T| + |G|])
+\end{array}
+\]
 
-The output from the second layers is implemented with dropout 0.4 to avoid over-fitting due to the small amount of data, and then the result is sent to a fully connected layer for decoding, which is the same as the one in the linear model.
+In training, the loss function is the sum of the cross entropy loss over all three attributes. 
+$$L = l_{\mathit{subfamily}} * log(t_1) + l_{\mathit{tribe}} * log(t_2) +  l_{\mathit{genus}} * log(t_3)$$
 
-\medskip
-
-Both of our models are trained using Adagrad optimizer with learning rate 0.1 and trained 40 epoches.
-Our result shows that the CNN model achieves 80.5\% validation accuracy on family classification and 34.7\% 7-class classification, while the linear model achieves 89.4\% in the 2-classes task and 57.1\% in the 7-class task.
+We optimize the loss with momentum based stochastic gradient descent algorithm.
 
 
-\section{Follow-up Plans}
+\section{Experiment}
 
-\paragraph{Transfer learning} One problem of the dataset is that we have a very small set of the data (889 image stacks), and CNN model does not benefit from its expressiveness. Our plan is to include a synthetic dataset to initialize our model together with phytolith datasets from other sources (Missouri Phytolith Database~\footnote{http://phytolith.missouri.edu/}, and Phytcore dataset~\footnote{http://www.phytcore.org/phytolith/}).
+We run experiments on a singe GPU machine to study the effect of tree based prediction algorithm together as well as the data augmentation scheme. First, we split the data set into 7:1:2 training, dev, test sets, and the splits are uniform among genus, this is intended to avoid having classes that only appear in dev or test set but not in training set.
 
-\paragraph{Utilizing 3D information from image stacks}
+We conduct a random parameter search process to tune hyper-parameters, and evaluate models with best dev set performance on the test set to report our experiment result. (Table~\ref{t1}) 
 
-In order to use common image recognition techniques (such as convolutional neural networks) to analyze the data, some simple methods to reduce the dimensionality of the data exist, such as taking the mean, minimum, or maximum along the depth axis. However, this discards information. 
+After tuning, we find that using images with $32$ stacks of images with size $64\times64$, with the hidden layer feature size $500$, $15$ convolution filters with kernel size $5$ performs best for all models. 
 
-We intend to make better use of the 3D information present in the raw data by developing a neural network architecture specifically for classifying 3D voxels\cite{DBLP:conf/iros/MaturanaS15,brock2016generative}. Due to the relative scarcity of data for a deep learning approach, we have decided to augment our dataset with synthetic data so that our model can better learn the relationship between shapes and their image stack representations. For example, we might take a deformable part model approach by learning to recognize certain primitives shapes that comprise the 3D structures. To this end, we have developed a framework for generating synthetic confocal microscope data from basic 3D shapes, creating image stacks with the objects oriented randomly. It is also important to incorporate the optical artifacts inherent to the measurement technique, which we have done by convolving the sharp 3D volumes with a depth-axis aligned conic filter. Topics of future investigation will therefore involve choosing a set of features with reasonable coverage, finding a neural network architecture that is suited to the associated recognition tasks, and assessing the performance of a classification method using these features.
+\begin{table}[h]
+\centering
+\begin{tabular}{ |c|c|c|c|c|c|c|c|c| } 
+\hline  
+& \multicolumn{2}{|c|}{TP and DA} & \multicolumn{2}{|c|}{TP only} & \multicolumn{2}{|c|}{DA only} & \multicolumn{2}{|c|}{None}\\\cline{2-9}  
+ 			& Dev    & Test   & Dev    & Test   & Dev    & Test   & Dev    & Test \\\hline\hline 
+LinearModel & 42.0\% & 51.0\% & 53.4\% & 41.7\% & 50.0\% & 44.6\% & 54.5\% & 55.4\%\\ 
+FC 		 	& 51.1\% & 50.3\% & 62.5\% & 52.9\% & 54.5\% & 49.0\% & 55.7\% & 57.3\%\\ 
+Conv 		& 58.0\% & 61.8\% & 62.5\% & 61.8\% & 58.0\% & 51.0\% & 58.0\% & 63.0\%\\
+ConvFC 	 	& 58.0\% & 56.1\% & 61.4\% & 58.0\% & 56.8\% & 54.8\% & 55.7\% & 60.5\%\\
+\hline
+\end{tabular}
+\caption{Model accuracies with/without tree prediction (TP) or data augmentation (DA) }
+\label{t1}
+\end{table}
+
+\paragraph{Discovery} While we expect tree prediction to improve genus prediction at the same time (since it allows the model to learn relationship among images within the same subfamily or class), there is no direct evidence that tree prediction can improve genus prediction. Also, augmenting the dataset add some random effects on the model whether and how much does the augmentation improve the model depends on the model. Another factor of the model's behavior on the dataset is that the dev set remains relatively small (with only 82 examples for 49 classes), and tunning the model based on the dev accuracy may be a factor of the model's under performance.
+
+While the model trained with augmented data and tree predictors under performs the model without either of them. We still present the result of model accuracy on all subfamily, tribe and genus. The result shows that in the case of performing predictions on all attributes at the same time, ConvFC model performs most stable, being able to achieve better result in high level classification goals, while simple Conv model is more specialized in genus prediction. 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ |c|c|c|c|c|c|c|c|c| } 
+\hline  
+       	    &   Dev (genus) &   Test (genus) & Test (tribe) & Test (subfamily)	\\\hline\hline
+LinearModel &  	42.0\%    	&  	51.0\%       &    67.5\%  	&  87.9\% 			\\
+FC     		&   51.1\%   	&   50.3\%       &    70.1\%    &  89.8\%			\\
+Cov    		&   58.0\%   	&   61.8\%       &    75.8\%   	&  94.3\%			\\
+ConvFC 		&   58.0\%   	&   56.1\%       &    77.7\%    &  94.9\%			\\\hline
+\end{tabular}
+\caption{Accuracies for all models training with both tree prediction and data augmentation. }
+\label{t2}
+\end{table}
+
+\section{Future Work}
+
+From the model design and experiments, we realized that simply augmenting data is far from enough in improving model performance in case of having too few training examples. Thus using transfer learning with deeper model from Cifar-10 or ImageNet can potentially produce better results. 
+
+Another consideration is that when we use tree decoders, we didn't restrict types of sub layer images and the network can still produce false genus for the tribe. Thus we consider restricting decoders with the types can potentially result in better result.
 
 \bibliography{milestone}
 \bibliographystyle{plain}
